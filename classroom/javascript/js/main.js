@@ -31,6 +31,6 @@ for (const investment of investments) {
       `#investment-${investment.id}`
     );
 
-    cardInvestment.remove();
+    cardInvestment.parentNode.remove();
   };
 }
