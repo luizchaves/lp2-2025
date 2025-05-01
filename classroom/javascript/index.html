@@ -42,11 +42,36 @@
     </nav>
 
     <div class="container">
-      <h1 class="text-center my-5">Invest App</h1>
+      <div>
+        <button class="btn btn-secondary float-end rounded-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#formOffcanvas">
+          +
+        </button>
+        <h1 class="text-center my-5">Invest App</h1>
+      </div>
 
       <div
         class="investments-grid row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
       ></div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="formOffcanvas">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Novo Investimento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <form id="investment-form">
+          <div class="mb-3">
+            <label for="name" class="form-label">Nome do Investimento</label>
+            <input type="text" class="form-control" id="name" required placeholder="Nome do investimento" autofocus>
+          </div>
+          <div class="mb-3">
+            <label for="value" class="form-label">Valor (R$)</label>
+            <input type="number" class="form-control" id="value" min="0" step="0.01" required placeholder="Valor do investimento">
+          </div>
+          <button type="submit" class="btn btn-secondary w-100" data-bs-toggle="offcanvas" data-bs-target="#formOffcanvas">Adicionar investimento</button>
+        </form>
+      </div>
     </div>
 
     <script
