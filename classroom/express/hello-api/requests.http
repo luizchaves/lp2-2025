@@ -1,0 +1,25 @@
+@server = http://localhost:3000
+
+###
+
+GET {{server}}/hello
+
+###
+
+GET {{server}}/hello/pt?name=João&campus=IFPB
+
+###
+
+GET {{server}}/hello/pt
+
+###
+
+GET {{server}}/hello/en/João
+
+###
+
+GET {{server}}/hello/en
+
+###
+
+
