@@ -1,25 +1,40 @@
 @server = http://localhost:3000
 
-###
+### get /hello
 
 GET {{server}}/hello
 
-###
+### get /hello/pt (ok)
 
 GET {{server}}/hello/pt?name=João&campus=IFPB
 
-###
+### get /hello/pt (not ok)
 
 GET {{server}}/hello/pt
 
-###
+### get /hello/pt (ok)
 
 GET {{server}}/hello/en/João
 
-###
+### get /hello/pt (not ok)
 
 GET {{server}}/hello/en
 
-###
+### post /hello/es (ok)
+POST {{server}}/hello/es
+Content-Type: application/json
 
+{
+  "name": "João"
+}
 
+### post /hello/es (not ok)
+POST {{server}}/hello/es
+
+### post /hello/es (not ok)
+POST {{server}}/hello/es
+Content-Type: application/json
+
+{
+  "nome": "João"
+}
