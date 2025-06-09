@@ -1,9 +1,8 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { investments } from './data/investments.js';
+import Investment from './models/Investment.js';
 
-class HttpError extends Error {
-  constructor(message, code = 400) {
+class HTTPError extends Error {
+  constructor(message, code) {
     super(message);
     this.code = code;
   }
@@ -11,82 +10,64 @@ class HttpError extends Error {
 
 const router = express.Router();
 
-router.post('/investments', (req, res) => {
-  const { name, value } = req.body;
+router.post('/investments', async (req, res) => {
+  try {
+    const investment = req.body;
 
-  if (!name || !value) {
-    throw new HttpError('Error when passing parameters');
+    const createdInvestment = await Investment.create(investment);
+
+    return res.json(createdInvestment);
+  } catch (error) {
+    throw new HTTPError('Unable to create investment', 400);
   }
-
-  const id = uuidv4();
-
-  const newInvestment = { name, value, id };
-
-  investments.push(newInvestment);
-
-  return res.status(201).json(newInvestment);
 });
 
-router.get('/investments', (req, res) => {
-  const { name } = req.query;
+router.get('/investments', async (req, res) => {
+  try {
+    const { name } = req.query;
 
-  if (name) {
-    const filteredInvestments = investments.filter((investment) =>
-      investment.name.includes(name)
-    );
+    const investments = await Investment.read('name', name);
 
-    return res.json(filteredInvestments);
+    res.json(investments);
+  } catch (error) {
+    throw new HTTPError('Unable to read investments', 400);
   }
-
-  return res.json(investments);
 });
 
-router.get('/investments/:id', (req, res) => {
+router.get('/investments/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const investment = await Investment.readById(id);
+
+    res.json(investment);
+  } catch (error) {
+    throw new HTTPError('Unable to find investment', 400);
+  }
+});
+
+router.put('/investments/:id', async (req, res) => {
+  try {
+    const investment = req.body;
+
+    const id = req.params.id;
+
+    const updatedInvestment = await Investment.update({ ...investment, id });
+
+    return res.json(updatedInvestment);
+  } catch (error) {
+    throw new HTTPError('Unable to update investment', 400);
+  }
+});
+
+router.delete('/investments/:id', async (req, res) => {
   const id = req.params.id;
 
-  const index = investments.findIndex((investment) => investment.id === id);
-
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
+  if (await Investment.remove(id)) {
+    res.sendStatus(204);
+  } else {
+    throw new HTTPError('Unable to remove investment', 400);
   }
-
-  return res.json(investments[index]);
-});
-
-router.put('/investments/:id', (req, res) => {
-  const { name, value } = req.body;
-
-  const { id } = req.params;
-
-  if (!name || !value) {
-    throw new HttpError('Error when passing parameters');
-  }
-
-  const newInvestment = { name, value, id };
-
-  const index = investments.findIndex((investment) => investment.id === id);
-
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
-  }
-
-  investments[index] = newInvestment;
-
-  return res.json(newInvestment);
-});
-
-router.delete('/investments/:id', (req, res) => {
-  const { id } = req.params;
-
-  const index = investments.findIndex((investment) => investment.id === id);
-
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
-  }
-
-  investments.splice(index, 1);
-
-  return res.sendStatus(204);
 });
 
 // 404 handler
@@ -97,12 +78,11 @@ router.use((req, res, next) => {
 // Error handler
 router.use((err, req, res, next) => {
   // console.error(err.stack);
-
-  if (err instanceof HttpError) {
-    return res.status(err.code).json({ message: err.message });
+  if (err instanceof HTTPError) {
+    res.status(err.code).json({ message: err.message });
+  } else {
+    res.status(500).json({ message: 'Something broke!' });
   }
-
-  return res.status(500).json({ message: 'Something broke!' });
 });
 
 export default router;
