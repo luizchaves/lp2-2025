@@ -26,9 +26,15 @@ router.get('/investments', async (req, res) => {
   try {
     const { name } = req.query;
 
-    const investments = await Investment.read('name', name);
+    let investments;
 
-    res.json(investments);
+    if (name) {
+      investments = await Investment.read({ name });
+    } else {
+      investments = await Investment.read();
+    }
+
+    return res.json(investments);
   } catch (error) {
     throw new HTTPError('Unable to read investments', 400);
   }
@@ -40,7 +46,7 @@ router.get('/investments/:id', async (req, res) => {
 
     const investment = await Investment.readById(id);
 
-    res.json(investment);
+    return res.json(investment);
   } catch (error) {
     throw new HTTPError('Unable to find investment', 400);
   }
@@ -64,7 +70,7 @@ router.delete('/investments/:id', async (req, res) => {
   const id = req.params.id;
 
   if (await Investment.remove(id)) {
-    res.sendStatus(204);
+    return res.sendStatus(204);
   } else {
     throw new HTTPError('Unable to remove investment', 400);
   }
@@ -72,16 +78,16 @@ router.delete('/investments/:id', async (req, res) => {
 
 // 404 handler
 router.use((req, res, next) => {
-  res.status(404).json({ message: 'Content not found!' });
+  return res.status(404).json({ message: 'Content not found!' });
 });
 
 // Error handler
 router.use((err, req, res, next) => {
   // console.error(err.stack);
   if (err instanceof HTTPError) {
-    res.status(err.code).json({ message: err.message });
+    return res.status(err.code).json({ message: err.message });
   } else {
-    res.status(500).json({ message: 'Something broke!' });
+    return res.status(500).json({ message: 'Something broke!' });
   }
 });
 

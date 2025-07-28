@@ -3,16 +3,17 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
-    "db:load": "node src/database/load.js",
-    "db:reload": "npm run db:drop && npm run db:load",
-    "db:drop": "rm src/database/db.sqlite"
+    "dev": "node --watch src/index.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.12.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "morgan": "^1.10.0",
-    "sqlite-async": "^1.2.2"
+    "prisma": "^6.12.0"
   }
 }
