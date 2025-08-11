@@ -1,20 +1,40 @@
-@host = http://localhost:3000
+@host = http://localhost:3000/api
 @createdInvestmentId = {{createdInvestment.response.body.$.id}}
+@categoryPosId = {{categoryPos.response.body.$.id}}
+@categoryIpcaId = {{categoryIpca.response.body.$.id}}
+
+### Read Categories
+
+GET {{host}}/categories
+
+### Read Categories by Name
+
+# @name categoryPos
+GET {{host}}/categories?name=Pós
+
+### Read Categories by Name
+
+# @name categoryIpca
+GET {{host}}/categories?name=IPCA
 
 ### Create Investment
 
 # @name createdInvestment
-POST {{host}}/api/investments
+POST {{host}}/investments
 Content-Type: application/json
 
 {
   "name": "Tesouro Selic 2029",
-  "value": 20000
+  "value": 10000,
+  "interest": "100% Selic",
+  "createdAt": "2023-09-01",
+  "broker": "Banco Inter",
+  "categoryId": "{{categoryIpcaId}}"
 }
 
 ### Create Investment without value
 
-POST {{host}}/api/investments
+POST {{host}}/investments
 Content-Type: application/json
 
 {
@@ -23,37 +43,41 @@ Content-Type: application/json
 
 ### Create Investment without investment values
 
-POST {{host}}/api/investments
+POST {{host}}/investments
 
 ### Read Investments
 
-GET {{host}}/api/investments
+GET {{host}}/investments
 
 ### Read Investments by id
 
-GET {{host}}/api/investments/{{createdInvestmentId}}
+GET {{host}}/investments/{{createdInvestmentId}}
 
 ### Read Investments with invalid id
 
-GET {{host}}/api/investments/a
+GET {{host}}/investments/a
 
 ### Read Investments by Name
 
-GET {{host}}/api/investments?name=Selic
+GET {{host}}/investments?name=Selic
 
 ### Update Investment
 
-PUT {{host}}/api/investments/{{createdInvestmentId}}
+PUT {{host}}/investments/{{createdInvestmentId}}
 Content-Type: application/json
 
 {
   "name": "Tesouro Selic 2029",
-  "value": 25000
+  "value": 20000,
+  "interest": "100% Selic",
+  "createdAt": "2023-09-01",
+  "broker": "Banco Inter",
+  "categoryId": "{{categoryPosId}}"
 }
 
 ### Update Investment without value
 
-PUT {{host}}/api/investments/{{createdInvestmentId}}
+PUT {{host}}/investments/{{createdInvestmentId}}
 Content-Type: application/json
 
 {
@@ -62,7 +86,7 @@ Content-Type: application/json
 
 ### Update Investment with invalid id
 
-PUT {{host}}/api/investments/a
+PUT {{host}}/investments/a
 Content-Type: application/json
 
 {
@@ -72,8 +96,8 @@ Content-Type: application/json
 
 ### Delete Investment
 
-DELETE {{host}}/api/investments/{{createdInvestmentId}}
+DELETE {{host}}/investments/{{createdInvestmentId}}
 
 ### Delete Investment with invalid id
 
-DELETE {{host}}/api/investments/a
+DELETE {{host}}/investments/a

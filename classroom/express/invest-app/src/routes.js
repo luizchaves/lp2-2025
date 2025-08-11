@@ -1,5 +1,6 @@
 import express from 'express';
 import Investment from './models/Investment.js';
+import Category from './models/Category.js';
 
 class HTTPError extends Error {
   constructor(message, code) {
@@ -13,6 +14,12 @@ const router = express.Router();
 router.post('/investments', async (req, res) => {
   try {
     const investment = req.body;
+
+    if (investment.createdAt) {
+      investment.createdAt = new Date(
+        investment.createdAt + 'T00:00:00-03:00'
+      ).toISOString();
+    }
 
     const createdInvestment = await Investment.create(investment);
 
@@ -58,6 +65,12 @@ router.put('/investments/:id', async (req, res) => {
 
     const id = req.params.id;
 
+    if (investment.createdAt) {
+      investment.createdAt = new Date(
+        investment.createdAt + 'T00:00:00-03:00'
+      ).toISOString();
+    }
+
     const updatedInvestment = await Investment.update({ ...investment, id });
 
     return res.json(updatedInvestment);
@@ -73,6 +86,24 @@ router.delete('/investments/:id', async (req, res) => {
     return res.sendStatus(204);
   } else {
     throw new HTTPError('Unable to remove investment', 400);
+  }
+});
+
+router.get('/categories', async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    let categories;
+
+    if (name) {
+      categories = await Category.read({ name });
+    } else {
+      categories = await Category.read();
+    }
+
+    return res.json(categories);
+  } catch (error) {
+    throw new HTTPError('Unable to read categories', 400);
   }
 });
 
