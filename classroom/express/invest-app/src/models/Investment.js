@@ -5,10 +5,11 @@ async function create({
   value,
   interest,
   createdAt,
-  broker,
   categoryId,
+  userId,
+  broker,
 }) {
-  if (name && value && interest && createdAt && broker && categoryId) {
+  if (name && value && interest && categoryId && userId && broker) {
     const createdInvestment = await prisma.investment.create({
       data: {
         name,
@@ -18,6 +19,11 @@ async function create({
         category: {
           connect: {
             id: categoryId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
           },
         },
         broker: {
@@ -33,6 +39,13 @@ async function create({
       },
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         broker: true,
       },
     });
@@ -54,26 +67,44 @@ async function read(where) {
     where,
     include: {
       category: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
       broker: true,
     },
   });
 
-  if (investments.length === 1 && where) {
+  if (
+    investments.length === 1 &&
+    Object.keys(where).some((key) => key !== 'userId')
+  ) {
     return investments[0];
   }
 
   return investments;
 }
 
-async function readById(id) {
+async function readById(id, where) {
   if (id) {
     const investment = await prisma.investment.findUnique({
       where: {
         id,
+        ...where,
       },
       include: {
         category: true,
         broker: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -89,10 +120,11 @@ async function update({
   value,
   interest,
   createdAt,
-  broker,
   categoryId,
+  userId,
+  broker,
 }) {
-  if (name && value && id && categoryId && broker && interest && createdAt) {
+  if (name && value && interest && categoryId && userId && broker && id) {
     const updatedInvestment = await prisma.investment.update({
       where: {
         id,
@@ -105,6 +137,11 @@ async function update({
         category: {
           connect: {
             id: categoryId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
           },
         },
         broker: {
@@ -120,6 +157,13 @@ async function update({
       },
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         broker: true,
       },
     });

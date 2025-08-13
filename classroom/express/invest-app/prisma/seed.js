@@ -12,6 +12,14 @@ async function main() {
   await prisma.category.createMany({
     data: seed.categories,
   });
+
+  await prisma.user.create({
+    data: {
+      email: 'admin@email.com',
+      name: 'admin',
+      password: 'admin',
+    },
+  });
 }
 main()
   .then(async () => {

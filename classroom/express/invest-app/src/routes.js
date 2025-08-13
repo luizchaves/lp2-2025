@@ -1,6 +1,7 @@
 import express from 'express';
 import Investment from './models/Investment.js';
 import Category from './models/Category.js';
+import User from './models/User.js';
 
 class HTTPError extends Error {
   constructor(message, code) {
@@ -19,6 +20,10 @@ router.post('/investments', async (req, res) => {
       investment.createdAt = new Date(
         investment.createdAt + 'T00:00:00-03:00'
       ).toISOString();
+    }
+
+    if (!investment.userId) {
+      investment.userId = (await User.read({ email: 'admin@email.com' })).id;
     }
 
     const createdInvestment = await Investment.create(investment);
@@ -61,14 +66,18 @@ router.get('/investments/:id', async (req, res) => {
 
 router.put('/investments/:id', async (req, res) => {
   try {
-    const investment = req.body;
-
     const id = req.params.id;
+
+    const investment = req.body;
 
     if (investment.createdAt) {
       investment.createdAt = new Date(
         investment.createdAt + 'T00:00:00-03:00'
       ).toISOString();
+    }
+
+    if (!investment.userId) {
+      investment.userId = (await User.read({ email: 'admin@email.com' })).id;
     }
 
     const updatedInvestment = await Investment.update({ ...investment, id });
@@ -104,6 +113,22 @@ router.get('/categories', async (req, res) => {
     return res.json(categories);
   } catch (error) {
     throw new HTTPError('Unable to read categories', 400);
+  }
+});
+
+router.post('/users', async (req, res) => {
+  try {
+    const user = req.body;
+
+    delete user.confirmationPassword;
+
+    const newUser = await User.create(user);
+
+    delete newUser.password;
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    throw new HTTPError('Unable to create user', 400);
   }
 });
 

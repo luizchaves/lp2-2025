@@ -2,6 +2,19 @@
 @createdInvestmentId = {{createdInvestment.response.body.$.id}}
 @categoryPosId = {{categoryPos.response.body.$.id}}
 @categoryIpcaId = {{categoryIpca.response.body.$.id}}
+@createdUserId = {{createdUser.response.body.$.id}}
+
+### Create User
+
+# @name createdUser
+POST {{host}}/users
+Content-Type: application/json
+
+{
+  "name": "Luiz",
+  "email": "luiz@email.com",
+  "password": "123"
+}
 
 ### Read Categories
 
@@ -29,7 +42,8 @@ Content-Type: application/json
   "interest": "100% Selic",
   "createdAt": "2023-09-01",
   "broker": "Banco Inter",
-  "categoryId": "{{categoryIpcaId}}"
+  "categoryId": "{{categoryIpcaId}}",
+  "userId": "{{createdUserId}}"
 }
 
 ### Create Investment without value
@@ -72,7 +86,8 @@ Content-Type: application/json
   "interest": "100% Selic",
   "createdAt": "2023-09-01",
   "broker": "Banco Inter",
-  "categoryId": "{{categoryPosId}}"
+  "categoryId": "{{categoryPosId}}",
+  "userId": "{{createdUserId}}"
 }
 
 ### Update Investment without value
