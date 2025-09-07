@@ -3,6 +3,7 @@
 @categoryPosId = {{categoryPos.response.body.$.id}}
 @categoryIpcaId = {{categoryIpca.response.body.$.id}}
 @createdUserId = {{createdUser.response.body.$.id}}
+@token = {{signin.response.body.$.token}}
 
 ### Create User
 
@@ -12,29 +13,64 @@ Content-Type: application/json
 
 {
   "name": "Luiz",
-  "email": "luiz@email.com",
+  "email": "luizcarlos@email.com",
   "password": "123"
 }
+
+### Signin 401
+
+# @name signin
+POST {{host}}/signin
+Content-Type: application/json
+
+{
+  "email": "luizcarlos@email.com",
+  "password": "321"
+}
+
+### Signin Ok
+
+# @name signin
+POST {{host}}/signin
+Content-Type: application/json
+
+{
+  "email": "luizcarlos@email.com",
+  "password": "123"
+}
+
+### Read User (whitout token)
+
+GET {{host}}/users/me
+
+### Read User (with token)
+
+GET {{host}}/users/me
+Authorization: bearer {{token}}
 
 ### Read Categories
 
 GET {{host}}/categories
+Authorization: bearer {{token}}
 
 ### Read Categories by Name
 
 # @name categoryPos
 GET {{host}}/categories?name=Pós
+Authorization: bearer {{token}}
 
 ### Read Categories by Name
 
 # @name categoryIpca
 GET {{host}}/categories?name=IPCA
+Authorization: bearer {{token}}
 
 ### Create Investment
 
 # @name createdInvestment
 POST {{host}}/investments
 Content-Type: application/json
+Authorization: bearer {{token}}
 
 {
   "name": "Tesouro Selic 2029",
@@ -50,6 +86,7 @@ Content-Type: application/json
 
 POST {{host}}/investments
 Content-Type: application/json
+Authorization: bearer {{token}}
 
 {
   "name": "Tesouro Selic 2029"
@@ -58,27 +95,33 @@ Content-Type: application/json
 ### Create Investment without investment values
 
 POST {{host}}/investments
+Authorization: bearer {{token}}
 
 ### Read Investments
 
 GET {{host}}/investments
+Authorization: bearer {{token}}
 
 ### Read Investments by id
 
 GET {{host}}/investments/{{createdInvestmentId}}
+Authorization: bearer {{token}}
 
 ### Read Investments with invalid id
 
 GET {{host}}/investments/a
+Authorization: bearer {{token}}
 
 ### Read Investments by Name
 
 GET {{host}}/investments?name=Selic
+Authorization: bearer {{token}}
 
 ### Update Investment
 
 PUT {{host}}/investments/{{createdInvestmentId}}
 Content-Type: application/json
+Authorization: bearer {{token}}
 
 {
   "name": "Tesouro Selic 2029",
@@ -94,6 +137,7 @@ Content-Type: application/json
 
 PUT {{host}}/investments/{{createdInvestmentId}}
 Content-Type: application/json
+Authorization: bearer {{token}}
 
 {
   "name": "Tesouro Selic 2029"
@@ -103,6 +147,7 @@ Content-Type: application/json
 
 PUT {{host}}/investments/a
 Content-Type: application/json
+Authorization: bearer {{token}}
 
 {
   "name": "Tesouro Selic 2029",
@@ -112,7 +157,9 @@ Content-Type: application/json
 ### Delete Investment
 
 DELETE {{host}}/investments/{{createdInvestmentId}}
+Authorization: bearer {{token}}
 
 ### Delete Investment with invalid id
 
 DELETE {{host}}/investments/a
+Authorization: bearer {{token}}

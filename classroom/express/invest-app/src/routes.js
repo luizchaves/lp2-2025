@@ -1,4 +1,9 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+
+import { isAuthenticated } from './middleware/auth.js';
+
 import Investment from './models/Investment.js';
 import Category from './models/Category.js';
 import User from './models/User.js';
@@ -12,7 +17,7 @@ class HTTPError extends Error {
 
 const router = express.Router();
 
-router.post('/investments', async (req, res) => {
+router.post('/investments', isAuthenticated, async (req, res) => {
   try {
     const investment = req.body;
 
@@ -34,7 +39,7 @@ router.post('/investments', async (req, res) => {
   }
 });
 
-router.get('/investments', async (req, res) => {
+router.get('/investments', isAuthenticated, async (req, res) => {
   try {
     const { name } = req.query;
 
@@ -52,7 +57,7 @@ router.get('/investments', async (req, res) => {
   }
 });
 
-router.get('/investments/:id', async (req, res) => {
+router.get('/investments/:id', isAuthenticated, async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -64,7 +69,7 @@ router.get('/investments/:id', async (req, res) => {
   }
 });
 
-router.put('/investments/:id', async (req, res) => {
+router.put('/investments/:id', isAuthenticated, async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -88,7 +93,7 @@ router.put('/investments/:id', async (req, res) => {
   }
 });
 
-router.delete('/investments/:id', async (req, res) => {
+router.delete('/investments/:id', isAuthenticated, async (req, res) => {
   const id = req.params.id;
 
   if (await Investment.remove(id)) {
@@ -98,7 +103,7 @@ router.delete('/investments/:id', async (req, res) => {
   }
 });
 
-router.get('/categories', async (req, res) => {
+router.get('/categories', isAuthenticated, async (req, res) => {
   try {
     const { name } = req.query;
 
@@ -129,6 +134,44 @@ router.post('/users', async (req, res) => {
     res.status(201).json(newUser);
   } catch (error) {
     throw new HTTPError('Unable to create user', 400);
+  }
+});
+
+router.get('/users/me', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const user = await User.readById(userId);
+
+    delete user.password;
+
+    return res.json(user);
+  } catch (error) {
+    throw new HTTPError('Unable to find user', 400);
+  }
+});
+
+router.post('/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const { id: userId, password: hash } = await User.read({ email });
+
+    const match = await bcrypt.compare(password, hash);
+
+    if (match) {
+      const token = jwt.sign(
+        { userId },
+        process.env.JWT_SECRET,
+        { expiresIn: 3600000 } // 1h
+      );
+
+      return res.json({ auth: true, token });
+    } else {
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(401).json({ error: 'User not found' });
   }
 });
 
