@@ -1,8 +1,10 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { z } from 'zod';
 
 import { isAuthenticated } from './middleware/auth.js';
+import { validate } from './middleware/validate.js';
 
 import Investment from './models/Investment.js';
 import Category from './models/Category.js';
@@ -17,163 +19,259 @@ class HTTPError extends Error {
 
 const router = express.Router();
 
-router.post('/investments', isAuthenticated, async (req, res) => {
-  try {
-    const investment = req.body;
+router.post(
+  '/investments',
+  isAuthenticated,
+  validate(
+    z.object({
+      body: z.object({
+        name: z.string(),
+        value: z.number(),
+        interest: z.string(),
+        createdAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        broker: z.string(),
+        categoryId: z.uuid(),
+      }),
+    })
+  ), async (req, res) => {
+    try {
+      const investment = req.body;
 
-    if (investment.createdAt) {
-      investment.createdAt = new Date(
-        investment.createdAt + 'T00:00:00-03:00'
-      ).toISOString();
+      if (investment.createdAt) {
+        investment.createdAt = new Date(
+          investment.createdAt + 'T00:00:00-03:00'
+        ).toISOString();
+      }
+
+      if (!investment.userId) {
+        investment.userId = (await User.read({ email: 'admin@email.com' })).id;
+      }
+
+      const createdInvestment = await Investment.create(investment);
+
+      return res.json(createdInvestment);
+    } catch (error) {
+      throw new HTTPError('Unable to create investment', 400);
     }
+  });
 
-    if (!investment.userId) {
-      investment.userId = (await User.read({ email: 'admin@email.com' })).id;
+router.get(
+  '/investments',
+  isAuthenticated,
+  validate(
+    z.object({
+      query: z.object({
+        name: z.string().optional(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const { name } = req.query;
+
+      let investments;
+
+      if (name) {
+        investments = await Investment.read({ name });
+      } else {
+        investments = await Investment.read();
+      }
+
+      return res.json(investments);
+    } catch (error) {
+      throw new HTTPError('Unable to read investments', 400);
     }
+  });
 
-    const createdInvestment = await Investment.create(investment);
+router.get(
+  '/investments/:id',
+  isAuthenticated,
+  validate(
+    z.object({
+      params: z.object({
+        id: z.uuid(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
 
-    return res.json(createdInvestment);
-  } catch (error) {
-    throw new HTTPError('Unable to create investment', 400);
-  }
-});
+      const investment = await Investment.readById(id);
 
-router.get('/investments', isAuthenticated, async (req, res) => {
-  try {
-    const { name } = req.query;
-
-    let investments;
-
-    if (name) {
-      investments = await Investment.read({ name });
-    } else {
-      investments = await Investment.read();
+      return res.json(investment);
+    } catch (error) {
+      throw new HTTPError('Unable to find investment', 400);
     }
+  });
 
-    return res.json(investments);
-  } catch (error) {
-    throw new HTTPError('Unable to read investments', 400);
-  }
-});
+router.put(
+  '/investments/:id',
+  isAuthenticated,
+  validate(
+    z.object({
+      params: z.object({
+        id: z.uuid(),
+      }),
+      body: z.object({
+        name: z.string(),
+        value: z.number(),
+        interest: z.string(),
+        createdAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        broker: z.string(),
+        categoryId: z.uuid(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
 
-router.get('/investments/:id', isAuthenticated, async (req, res) => {
-  try {
+      const investment = req.body;
+
+      if (investment.createdAt) {
+        investment.createdAt = new Date(
+          investment.createdAt + 'T00:00:00-03:00'
+        ).toISOString();
+      }
+
+      if (!investment.userId) {
+        investment.userId = (await User.read({ email: 'admin@email.com' })).id;
+      }
+
+      const updatedInvestment = await Investment.update({ ...investment, id });
+
+      return res.json(updatedInvestment);
+    } catch (error) {
+      throw new HTTPError('Unable to update investment', 400);
+    }
+  });
+
+router.delete(
+  '/investments/:id',
+  isAuthenticated,
+  validate(
+    z.object({
+      params: z.object({
+        id: z.uuid(),
+      }),
+    })
+  ),
+  async (req, res) => {
     const id = req.params.id;
 
-    const investment = await Investment.readById(id);
-
-    return res.json(investment);
-  } catch (error) {
-    throw new HTTPError('Unable to find investment', 400);
-  }
-});
-
-router.put('/investments/:id', isAuthenticated, async (req, res) => {
-  try {
-    const id = req.params.id;
-
-    const investment = req.body;
-
-    if (investment.createdAt) {
-      investment.createdAt = new Date(
-        investment.createdAt + 'T00:00:00-03:00'
-      ).toISOString();
-    }
-
-    if (!investment.userId) {
-      investment.userId = (await User.read({ email: 'admin@email.com' })).id;
-    }
-
-    const updatedInvestment = await Investment.update({ ...investment, id });
-
-    return res.json(updatedInvestment);
-  } catch (error) {
-    throw new HTTPError('Unable to update investment', 400);
-  }
-});
-
-router.delete('/investments/:id', isAuthenticated, async (req, res) => {
-  const id = req.params.id;
-
-  if (await Investment.remove(id)) {
-    return res.sendStatus(204);
-  } else {
-    throw new HTTPError('Unable to remove investment', 400);
-  }
-});
-
-router.get('/categories', isAuthenticated, async (req, res) => {
-  try {
-    const { name } = req.query;
-
-    let categories;
-
-    if (name) {
-      categories = await Category.read({ name });
+    if (await Investment.remove(id)) {
+      return res.sendStatus(204);
     } else {
-      categories = await Category.read();
+      throw new HTTPError('Unable to remove investment', 400);
     }
+  });
 
-    return res.json(categories);
-  } catch (error) {
-    throw new HTTPError('Unable to read categories', 400);
-  }
-});
+router.get(
+  '/categories',
+  isAuthenticated,
+  validate(
+    z.object({
+      query: z.object({
+        name: z.string().optional(),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const { name } = req.query;
 
-router.post('/users', async (req, res) => {
-  try {
-    const user = req.body;
+      let categories;
 
-    delete user.confirmationPassword;
+      if (name) {
+        categories = await Category.read({ name });
+      } else {
+        categories = await Category.read();
+      }
 
-    const newUser = await User.create(user);
-
-    delete newUser.password;
-
-    res.status(201).json(newUser);
-  } catch (error) {
-    throw new HTTPError('Unable to create user', 400);
-  }
-});
-
-router.get('/users/me', isAuthenticated, async (req, res) => {
-  try {
-    const userId = req.userId;
-
-    const user = await User.readById(userId);
-
-    delete user.password;
-
-    return res.json(user);
-  } catch (error) {
-    throw new HTTPError('Unable to find user', 400);
-  }
-});
-
-router.post('/signin', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const { id: userId, password: hash } = await User.read({ email });
-
-    const match = await bcrypt.compare(password, hash);
-
-    if (match) {
-      const token = jwt.sign(
-        { userId },
-        process.env.JWT_SECRET,
-        { expiresIn: 3600000 } // 1h
-      );
-
-      return res.json({ auth: true, token });
-    } else {
-      throw new Error('User not found');
+      return res.json(categories);
+    } catch (error) {
+      throw new HTTPError('Unable to read categories', 400);
     }
-  } catch (error) {
-    res.status(401).json({ error: 'User not found' });
-  }
-});
+  });
+
+router.post(
+  '/users',
+  validate(
+    z.object({
+      body: z.object({
+        name: z.string(),
+        email: z.email(),
+        password: z.string().min(8),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const user = req.body;
+
+      delete user.confirmationPassword;
+
+      const newUser = await User.create(user);
+
+      delete newUser.password;
+
+      res.status(201).json(newUser);
+    } catch (error) {
+      throw new HTTPError('Unable to create user', 400);
+    }
+  });
+
+router.get(
+  '/users/me',
+  isAuthenticated,
+  async (req, res) => {
+    try {
+      const userId = req.userId;
+
+      const user = await User.readById(userId);
+
+      delete user.password;
+
+      return res.json(user);
+    } catch (error) {
+      throw new HTTPError('Unable to find user', 400);
+    }
+  });
+
+router.post(
+  '/signin',
+  validate(
+    z.object({
+      body: z.object({
+        email: z.email(),
+        password: z.string().min(8),
+      }),
+    })
+  ),
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const { id: userId, password: hash } = await User.read({ email });
+
+      const match = await bcrypt.compare(password, hash);
+
+      if (match) {
+        const token = jwt.sign(
+          { userId },
+          process.env.JWT_SECRET,
+          { expiresIn: 3600000 } // 1h
+        );
+
+        return res.json({ auth: true, token });
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      res.status(401).json({ error: 'User not found' });
+    }
+  });
 
 // 404 handler
 router.use((req, res, next) => {
