@@ -33,13 +33,15 @@ async function handleSubmit(event) {
 }
 
 form.email.oninput = () => {
+  form.email.setCustomValidity('');
+
   form.email.classList.remove('is-invalid');
 
-  const confirmationPasswordError = document.querySelector(
+  const email = document.querySelector(
     '#email + .invalid-feedback'
   );
 
-  confirmationPasswordError.textContent = 'Informe o email do usuário.';
+  email.textContent = 'Informe o email do usuário.';
 };
 
 form.confirmationPassword.oninput = () => {
