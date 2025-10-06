@@ -5,12 +5,19 @@ const saltRounds = Number(process.env.BCRYPT_SALT);
 
 async function create({ name, email, password }) {
   if (name && email && password) {
+    // Verifica se já existe usuário com o mesmo email
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new Error('Email already exists');
+    }
     const hash = await bcrypt.hash(password, saltRounds);
 
     const createdUser = await prisma.user.create({
       data: { name, email, password: hash },
     });
-
     return createdUser;
   } else {
     throw new Error('Unable to create user');

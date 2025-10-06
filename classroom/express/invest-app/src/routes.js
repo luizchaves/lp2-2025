@@ -218,6 +218,10 @@ router.post(
 
       res.status(201).json(newUser);
     } catch (error) {
+      if (error.message === 'Email already exists') {
+        throw new HTTPError('Email already exists', 400);
+      }
+
       throw new HTTPError('Unable to create user', 400);
     }
   });
