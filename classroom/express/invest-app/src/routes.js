@@ -9,6 +9,7 @@ import { validate } from './middleware/validate.js';
 import Investment from './models/Investment.js';
 import Category from './models/Category.js';
 import User from './models/User.js';
+import SendMail from './services/SendMail.js';
 
 class HTTPError extends Error {
   constructor(message, code) {
@@ -215,6 +216,8 @@ router.post(
       const newUser = await User.create(user);
 
       delete newUser.password;
+
+      await SendMail.createNewUser(user.email);
 
       res.status(201).json(newUser);
     } catch (error) {
