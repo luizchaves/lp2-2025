@@ -58,6 +58,10 @@ async function update(resource, data, formData = false) {
     },
   };
 
+  if (!formData) {
+    config.headers['Content-Type'] = 'application/json; charset=UTF-8';
+  }
+
   const res = await fetch(url, config);
 
   if (res.status === 401) {
