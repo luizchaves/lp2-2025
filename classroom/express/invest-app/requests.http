@@ -4,6 +4,7 @@
 @categoryIpcaId = {{categoryIpca.response.body.$.id}}
 @createdUserId = {{createdUser.response.body.$.id}}
 @token = {{signin.response.body.$.token}}
+@userId = {{userMe.response.body.$.id}}
 
 ### Create User
 
@@ -14,7 +15,7 @@ Content-Type: application/json
 {
   "name": "Luiz",
   "email": "luizcarlos@email.com",
-  "password": "123"
+  "password": "12345678"
 }
 
 ### Signin 401
@@ -36,7 +37,7 @@ Content-Type: application/json
 
 {
   "email": "luizcarlos@email.com",
-  "password": "123"
+  "password": "12345678"
 }
 
 ### Read User (whitout token)
@@ -45,8 +46,43 @@ GET {{host}}/users/me
 
 ### Read User (with token)
 
+# @name userMe
 GET {{host}}/users/me
 Authorization: bearer {{token}}
+
+### Create Image (User)
+
+POST {{host}}/users/image
+Authorization: bearer {{token}}
+Content-Type: multipart/form-data; boundary="boundary"
+
+--boundary
+Content-Disposition: form-data; name="userId"
+
+{{createdUserId}}
+--boundary
+Content-Disposition: form-data; name="image"; filename="avatar.png"
+Content-Type: image/png
+
+< ./public/imgs/profile/avatar.png
+--boundary--
+
+### Update Image (User)
+
+PUT {{host}}/users/image
+Authorization: bearer {{token}}
+Content-Type: multipart/form-data; boundary="boundary"
+
+--boundary
+Content-Disposition: form-data; name="userId"
+
+{{userId}}
+--boundary
+Content-Disposition: form-data; name="image"; filename="avatar.png"
+Content-Type: image/png
+
+< ./public/imgs/profile/avatar.png
+--boundary--
 
 ### Read Categories
 
