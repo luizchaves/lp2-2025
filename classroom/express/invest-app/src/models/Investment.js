@@ -78,12 +78,9 @@ async function read(where) {
     },
   });
 
-  if (
-    investments.length === 1 &&
-    Object.keys(where).some((key) => key !== 'userId')
-  ) {
-    return investments[0];
-  }
+  // if (investments.length === 1) {
+  //   return investments[0];
+  // }
 
   return investments;
 }

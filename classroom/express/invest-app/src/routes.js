@@ -49,13 +49,11 @@ router.post(
         ).toISOString();
       }
 
-      if (!investment.userId) {
-        investment.userId = (await User.read({ email: 'admin@email.com' })).id;
-      }
+      investment.userId = req.userId;
 
       const createdInvestment = await Investment.create(investment);
 
-      return res.json(createdInvestment);
+      return res.status(201).json(createdInvestment);
     } catch (error) {
       throw new HTTPError('Unable to create investment', 400);
     }
@@ -141,9 +139,7 @@ router.put(
         ).toISOString();
       }
 
-      if (!investment.userId) {
-        investment.userId = (await User.read({ email: 'admin@email.com' })).id;
-      }
+      investment.userId = req.userId;
 
       const updatedInvestment = await Investment.update({ ...investment, id });
 

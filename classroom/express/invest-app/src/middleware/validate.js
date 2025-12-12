@@ -9,7 +9,7 @@ export function validate(schema) {
 
       next();
     } catch (err) {
-      return res.status(400).send(err.message);
+      return res.status(400).json(JSON.parse(err.message));
     }
   };
 }
